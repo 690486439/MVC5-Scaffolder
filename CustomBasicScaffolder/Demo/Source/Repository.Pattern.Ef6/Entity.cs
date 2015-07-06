@@ -6,6 +6,8 @@ namespace Repository.Pattern.Ef6
     public abstract class Entity : IObjectState
     {
         [NotMapped]
+ 
+        [System.Xml.Serialization.XmlIgnore]
         public ObjectState ObjectState { get; set; }
     }
 }

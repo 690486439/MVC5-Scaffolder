@@ -12,6 +12,7 @@ namespace WebApp.Models
     {
       
         [Display(Name = "分类")]
+        [UIHint("ClientCategory")]
         public Category Category { get; set; }
 
         [Required(ErrorMessage = "Please enter : Id")]

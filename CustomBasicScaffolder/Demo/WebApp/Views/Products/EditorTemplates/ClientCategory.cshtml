@@ -1,0 +1,12 @@
+﻿
+
+@using Kendo.Mvc.UI
+@using Kendo.Mvc.UI.Html
+
+@model WebApp.Models.Category
+
+@(Html.Kendo().DropDownListFor(m => m)
+        .DataValueField("Id")
+        .DataTextField("Name")
+        .BindTo((System.Collections.IEnumerable)ViewData["categories"])
+)

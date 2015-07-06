@@ -37,8 +37,10 @@ namespace WebApp.Controllers
         // GET: Products/Index
         public ActionResult Index()
         {
-            
-            
+            var categories = _unitOfWork.Repository<Category>();
+
+            ViewData["categories"] = categories.Queryable();
+            ViewData["defaultCategory"] = categories.Queryable().First();     
             
              return View();
         }
@@ -46,10 +48,12 @@ namespace WebApp.Controllers
         #region operate for kend-ui grid
         public ActionResult Read([DataSourceRequest]DataSourceRequest request)
         {
-            DataSourceResult result = _productService.Queryable().ToDataSourceResult(request, c => new
+            DataSourceResult result = _productService.Queryable().Include(x=>x.Category).ToDataSourceResult(request, c => new
             {
                 Id = c.Id,
                 Name = c.Name,
+                ObjectState = c.ObjectState,
+                Category = new Category(){ Id = c.Category.Id, Name = c.Category.Name},
                 CategoryId= c.CategoryId,
                 StockQty =  c.StockQty,
                 Unit = c.Unit,
@@ -66,22 +70,55 @@ namespace WebApp.Controllers
         {
             if (product != null && ModelState.IsValid)
             {
+                if (product.Category != null)
+                {
+                    product.CategoryId = product.Category.Id;
+                    //product.Category = null;
+                }
                 _productService.Insert(product);
                 _unitOfWork.SaveChanges();
             }
 
-            return Json(new[] { product }.ToDataSourceResult(request, ModelState));
+            return Json(new[] { new 
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Category = new Category(){ Id = product.Category.Id, Name = product.Category.Name},
+                CategoryId= product.CategoryId,
+                StockQty =  product.StockQty,
+                Unit = product.Unit,
+               UnitPrice= product.UnitPrice,
+               ConfirmDateTime = product.ConfirmDateTime
+              
+            }}.ToDataSourceResult(request, ModelState));
         }
         [AcceptVerbs(HttpVerbs.Post)]
         public ActionResult Update([DataSourceRequest] DataSourceRequest request,Product product)
         {
             if (product != null && ModelState.IsValid)
             {
+                if (product.Category != null)
+                {
+                    product.CategoryId = product.Category.Id;
+                    //product.Category = null;
+                }
                 _productService.Update(product);
                 _unitOfWork.SaveChanges();
             }
 
-            return Json(new[] { product }.ToDataSourceResult(request, ModelState));
+
+            return Json(new[] { new 
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Category = new Category(){ Id = product.Category.Id, Name = product.Category.Name},
+                CategoryId= product.CategoryId,
+                StockQty =  product.StockQty,
+                Unit = product.Unit,
+               UnitPrice= product.UnitPrice,
+               ConfirmDateTime = product.ConfirmDateTime
+              
+            }}.ToDataSourceResult(request, ModelState));
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
