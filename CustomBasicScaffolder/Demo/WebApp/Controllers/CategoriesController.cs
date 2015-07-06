@@ -16,6 +16,8 @@ using WebApp.Services;
 using WebApp.Repositories;
 using WebApp.Extensions;
 using PagedList;
+using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
 
 namespace WebApp.Controllers
 {
@@ -32,13 +34,69 @@ namespace WebApp.Controllers
         }
 
         // GET: Categories/Index
-        public ActionResult Index()
+        public ActionResult Index( )
         {
-            
-            var categories  = _categoryService.Queryable().AsQueryable();
-            return View(categories  );
+
+            return View();
+          
+        }
+        #region operate for kend-ui grid
+        public ActionResult Read([DataSourceRequest]DataSourceRequest request)
+        {
+            DataSourceResult result = _categoryService.Queryable().ToDataSourceResult(request, c => new
+            {
+                Id = c.Id,
+                Name = c.Name
+               
+            });
+            //DataSourceResult result = students.ToDataSourceResult(request);
+            return Json(result);
         }
 
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult Create([DataSourceRequest] DataSourceRequest request, Category category)
+        {
+            if (category != null && ModelState.IsValid)
+            {
+                _categoryService.Insert(category);
+                _unitOfWork.SaveChanges();
+            }
+
+            return Json(new[] { category }.ToDataSourceResult(request, ModelState));
+        }
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult Update([DataSourceRequest] DataSourceRequest request, Category category)
+        {
+            if (category != null && ModelState.IsValid)
+            {
+                _categoryService.Update(category);
+                _unitOfWork.SaveChanges();
+            }
+
+            return Json(new[] { category }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult Delete([DataSourceRequest] DataSourceRequest request, Category category)
+        {
+            if (category != null)
+            {
+                _categoryService.Delete(category);
+                _unitOfWork.SaveChanges();
+            }
+
+            return Json(new[] { category }.ToDataSourceResult(request, ModelState));
+        }
+
+        [HttpPost]
+        public ActionResult Excel_Export_Save(string contentType, string base64, string fileName)
+        {
+            var fileContents = Convert.FromBase64String(base64);
+
+            return File(fileContents, contentType, fileName);
+        }
+
+        #endregion
         // Get :Categories/PageList
         // For Index View Boostrap-Table load  data 
         [HttpGet]

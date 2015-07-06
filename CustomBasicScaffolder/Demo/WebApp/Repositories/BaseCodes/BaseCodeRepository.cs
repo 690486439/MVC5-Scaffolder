@@ -24,7 +24,7 @@ namespace WebApp.Repositories
             return query.CodeItems;
             //return repository.Query(n => n.Id == basecodeid).Include(x => x.CodeItems).Select(x => x.CodeItems).FirstOrDefault();
         }
-
+       
                 public static IEnumerable<CodeItem> GetCodeItemsByCodeType(this IRepositoryAsync<BaseCode> repository, string codeType)
                 {
                     var query = repository.Query(n => n.CodeType == codeType).Include(x => x.CodeItems).Select().FirstOrDefault();
