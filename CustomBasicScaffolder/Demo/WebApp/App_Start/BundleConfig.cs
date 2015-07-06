@@ -40,6 +40,25 @@ namespace WebApp
                        "~/Content/bootstrap-table.css",
                       "~/Content/sb-admin.css"));
 
+
+
+            bundles.Add(new ScriptBundle("~/bundles/kendo").Include(
+                        "~/Scripts/kendo/2015.2.624/jszip.min.js",
+                        "~/Scripts/kendo/2015.2.624/kendo.all.min.js",
+                        "~/Scripts/kendo/2015.2.624/kendo.aspnetmvc.min.js",
+                        "~/Scripts/kendo/2015.2.624/cultures/kendo.culture.zh-CN.min.js",
+                        "~/Scripts/kendo.modernizr.custom.js"
+                        ));
+
+
+            bundles.Add(new StyleBundle("~/Content/kendo/css").Include(
+                      "~/Content/kendo/2015.2.624/kendo.common-material.min.css",
+                       "~/Content/kendo/2015.2.624/kendo.mobile.all.min.css",
+                      "~/Content/kendo/2015.2.624/kendo.dataviz.min.css",
+                      "~/Content/kendo/2015.2.624/kendo.material.min.css",
+                      "~/Content/kendo/2015.2.624/kendo.dataviz.material.min.css"
+                      ));
+
             // Set EnableOptimizations to false for debugging. For more information,
             // visit http://go.microsoft.com/fwlink/?LinkId=301862
             BundleTable.EnableOptimizations = true;

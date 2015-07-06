@@ -16,6 +16,9 @@ using WebApp.Services;
 using WebApp.Repositories;
 using WebApp.Extensions;
 using PagedList;
+using Kendo.Mvc.UI;
+using Kendo.Mvc.Extensions;
+
 
 namespace WebApp.Controllers
 {
@@ -35,140 +38,73 @@ namespace WebApp.Controllers
         public ActionResult Index()
         {
             
-            var products  = _productService.Queryable().Include(p => p.Category).AsQueryable();
             
-             return View(products);
-        }
-
-        // Get :Products/PageList
-        // For Index View Boostrap-Table load  data 
-        [HttpGet]
-        public ActionResult PageList(int offset = 0, int limit = 10, string search = "", string sort = "", string order = "")
-        {
-            int totalCount = 0;
-            int pagenum = offset / limit +1;
-                        var product  = _productService.Query(new ProductQuery().WithAnySearch(search)).Include(p => p.Category).OrderBy(n=>n.OrderBy(sort,order)).SelectPage(pagenum, limit, out totalCount);
             
-                        var rows = product .Select( n => new { CategoryName = n.Category.Name , Id = n.Id , Name = n.Name , Unit = n.Unit , UnitPrice = n.UnitPrice , StockQty = n.StockQty , ConfirmDateTime = n.ConfirmDateTime , CategoryId = n.CategoryId }).ToList();
-            var pagelist = new { total = totalCount, rows = rows };
-            return Json(pagelist, JsonRequestBehavior.AllowGet);
+             return View();
         }
 
-       
-        // GET: Products/Details/5
-        public ActionResult Details(int? id)
+        #region operate for kend-ui grid
+        public ActionResult Read([DataSourceRequest]DataSourceRequest request)
         {
-            if (id == null)
+            DataSourceResult result = _productService.Queryable().ToDataSourceResult(request, c => new
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Product product = _productService.Find(id);
-            if (product == null)
-            {
-                return HttpNotFound();
-            }
-            return View(product);
-        }
-        
-
-        // GET: Products/Create
-        public ActionResult Create()
-        {
-            var categoryRepository = _unitOfWork.Repository<Category>();
-            ViewBag.CategoryId = new SelectList(categoryRepository.Queryable(), "Id", "Name");
-            return View();
+                Id = c.Id,
+                Name = c.Name,
+                CategoryId= c.CategoryId,
+                StockQty =  c.StockQty,
+                Unit = c.Unit,
+               UnitPrice= c.UnitPrice,
+               ConfirmDateTime = c.ConfirmDateTime
+              
+            });
+            //DataSourceResult result = students.ToDataSourceResult(request);
+            return Json(result);
         }
 
-        // POST: Products/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Category,Id,Name,Unit,UnitPrice,StockQty,ConfirmDateTime,CategoryId")] Product product)
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult Create([DataSourceRequest] DataSourceRequest request, Product product)
         {
-            if (ModelState.IsValid)
+            if (product != null && ModelState.IsValid)
             {
-             	_productService.Insert(product);
+                _productService.Insert(product);
                 _unitOfWork.SaveChanges();
-                DisplaySuccessMessage("Has append a Product record");
-                return RedirectToAction("Index");
             }
 
-            var categoryRepository = _unitOfWork.Repository<Category>();
-            ViewBag.CategoryId = new SelectList(categoryRepository.Queryable(), "Id", "Name", product.CategoryId);
-            DisplayErrorMessage();
-            return View(product);
+            return Json(new[] { product }.ToDataSourceResult(request, ModelState));
         }
-
-        // GET: Products/Edit/5
-        public ActionResult Edit(int? id)
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult Update([DataSourceRequest] DataSourceRequest request,Product product)
         {
-            if (id == null)
+            if (product != null && ModelState.IsValid)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Product product = _productService.Find(id);
-
- 
-
-
-            if (product == null)
-            {
-                return HttpNotFound();
-            }
-            var categoryRepository = _unitOfWork.Repository<Category>();
-            ViewBag.CategoryId = new SelectList(categoryRepository.Queryable(), "Id", "Name", product.CategoryId);
-            return View(product);
-        }
-
-        // POST: Products/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Category,Id,Name,Unit,UnitPrice,StockQty,ConfirmDateTime,CategoryId")] Product product)
-        {
-            if (ModelState.IsValid)
-            {
-                product.ObjectState = ObjectState.Modified;
-                				_productService.Update(product);
-                                
+                _productService.Update(product);
                 _unitOfWork.SaveChanges();
-                DisplaySuccessMessage("Has update a Product record");
-                return RedirectToAction("Index");
             }
-            var categoryRepository = _unitOfWork.Repository<Category>();
-            ViewBag.CategoryId = new SelectList(categoryRepository.Queryable(), "Id", "Name", product.CategoryId);
-            DisplayErrorMessage();
-            return View(product);
+
+            return Json(new[] { product }.ToDataSourceResult(request, ModelState));
         }
 
-        // GET: Products/Delete/5
-        public ActionResult Delete(int? id)
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult Delete([DataSourceRequest] DataSourceRequest request,Product product)
         {
-            if (id == null)
+            if (product != null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                _productService.Delete(product);
+                _unitOfWork.SaveChanges();
             }
-            Product product = _productService.Find(id);
-            if (product == null)
-            {
-                return HttpNotFound();
-            }
-            return View(product);
+
+            return Json(new[] { product }.ToDataSourceResult(request, ModelState));
         }
 
-        // POST: Products/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        [HttpPost]
+        public ActionResult Excel_Export_Save(string contentType, string base64, string fileName)
         {
-            Product product =  _productService.Find(id);
-             _productService.Delete(product);
-            _unitOfWork.SaveChanges();
-            DisplaySuccessMessage("Has delete a Product record");
-            return RedirectToAction("Index");
+            var fileContents = Convert.FromBase64String(base64);
+
+            return File(fileContents, contentType, fileName);
         }
 
-
+        #endregion
        
 
  

@@ -1,4 +1,6 @@
 ﻿
+@using Kendo.Mvc.UI
+@using Kendo.Mvc.UI.Html
 
 @model IEnumerable<WebApp.Models.Category>
 
@@ -6,7 +8,7 @@
 
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Category";
 }
 <style type='text/css'>
     /*設定 數字靠右*/
@@ -35,123 +37,85 @@
     <!-- /.row -->
      <div class="row">
         <div class="col-lg-12">
-            <div id="toolbar" class="btn-group">
-                <button type="button" id="newcategoriesbutton" class="btn btn-default">
-                    <i class="glyphicon glyphicon-plus"></i>
-                </button>
+            @(Html.Kendo().Grid<WebApp.Models.Category>()
+              .Name("Category")
+      .Columns(columns =>
+      {
+          columns.Command(command => { command.Edit(); command.Destroy(); });
+          columns.Bound(c => c.Name);
+       
+      })
+      .ToolBar(toolbar =>
+      {
+          toolbar.Create();
+          toolbar.Excel();
+         
+      })
 
-                <button type="button" id="deletecategoriesbutton" class="btn btn-default">
-                    <i class="glyphicon glyphicon-trash"></i>
-                </button>
-            </div>
- 
 
-        <table id="categories-table" data-search="true"
-                   data-url="/Categories/PageList"
-                   data-flat="false"
-                   data-toolbar="#toolbar"
-                   data-pagination="true"
-                   data-show-refresh="true"
-                   data-show-toggle="true"
-                   data-show-columns="true"
-                   data-single-select="true"
-                   data-page-list="[5, 10, 20, 50, 100, 200]"
-                   data-sort-name="Id"
-                   data-side-pagination="server"
-                   data-click-to-select="true">
-                <thead>
-                    <tr>
-                         <th data-field="state" data-checkbox="true"></th>
-                    <th data-field="Id" data-sortable="true"  data-visible="false" >
-             @Html.DisplayNameFor(model => model.Id)
-            </th>
-                        <th data-field="Name" data-sortable="true" >
-             @Html.DisplayNameFor(model => model.Name)
-        </th>
-                <th data-field="action" data-formatter="actionFormatter" data-events="actionEvents">Action</th>
-    </tr>
-    </thead>
- 
+              .ColumnMenu(menu => menu.Filterable(false))
+      .Editable(editable => editable.Mode(GridEditMode.InLine))
+      .Pageable()
+      .Selectable(selectable =>
+      {
+          selectable.Mode(GridSelectionMode.Single);
+          selectable.Type(GridSelectionType.Row);
+      })
+      .Sortable(sortable =>
+      {
+          sortable.SortMode(GridSortMode.SingleColumn);
+      })
+      .Filterable(filterable => filterable.Mode(GridFilterMode.Row))
+      .Scrollable()
+      .Groupable()
+      .DataSource(dataSource => dataSource
+          .Ajax()
+          .Model(model => model.Id(p => p.Id))
+          .Read(read => read.Action("Read", "Categories"))
+          .PageSize(20)
+          .Events(events => events.Error("error_handler"))
+                  .Create(update => update.Action("Create", "Categories"))
+                  .Update(update => update.Action("Update", "Categories"))
+                  .Destroy(update => update.Action("Delete", "Categories"))
 
-</table>
+      )
+            )
 
-<br />
+        <br />
  
      </div>
     </div>
 </div>
 @section Scripts {
     <script type="text/javascript">
-        var $categoriestable = $('#categories-table');
-        var $deletecategoriesbutton = $('#deletecategoriesbutton');
-        function actionFormatter(value, row, index) {
-            return [
-                '<a class="edit" href="javascript:void(0)" title="Add">',
-                '<i class="glyphicon glyphicon-edit"></i>',
-                '</a>  ',
-                ' <a class="remove" href="javascript:void(0)" title="Remove">',
-                '<i class="glyphicon glyphicon-remove"></i>',
-                '</a>'
-            ].join('');
-        }
-        window.actionEvents = {
+        $(window).resize(function () {
+            var gridElement = $("#Category"),
+                newHeight = gridElement.innerHeight(),
+                otherElements = gridElement.children().not(".k-grid-content"),
+                otherElementsHeight = 0;
 
-            'click .edit': function (e, value, row, index) {
-                 var url="/Categories/Edit/" + row.Id
-                 $(location).attr('href', url);
-            },            
-            'click .remove': function (e, value, row, index) {
-                 deleteCategories(row.Id);
-                //console.log(value, row, index);
-            }
-    
-        }
-        //jquery post /Categories/Delete/:id
-        function deleteCategories(id) {
-            var url = '@Url.Action("Delete")';   
-            bootbox.dialog({
-                message: "Are you sure delete " + id,
-                title: "Delete Categories ",
-                buttons: {
-                    Cancel: {
-                        label: "Cancel",
-                        className: "btn-default",
-                        callback: function () {
-                           
-                        }
-                    },
-                    OK: {
-                        label: "OK",
-                        className: "btn-success",
-                        callback: function () {
-                            $.post(url, { id: id }, function (data) {
-                                $categoriestable.bootstrapTable('remove', { field: 'Id', values: [id] });
-                                //console.log('remove' + row.Id);
-                            });
-                        }
-                    }
-                }
+            otherElements.each(function () {
+                otherElementsHeight += $(this).outerHeight() -100;
             });
+            console.log(otherElementsHeight);
+            gridElement.children(".k-grid-content").height(newHeight - otherElementsHeight);
+        });
+
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
         }
         $(document).ready(function (e) {
-            $categoriestable = $('#categories-table').bootstrapTable(
-                {
-                }
-                );
-             $categoriestable.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
-                $deletecategoriesbutton.prop('disabled', !$categoriestable.bootstrapTable('getSelections').length);
-            });
-            $('#newcategoriesbutton').on('click', function () {
-
-                $(location).attr('href', "/Categories/Create");
-            });
-            $('#deletecategoriesbutton').on('click', function () {
-                var selected = $categoriestable.bootstrapTable('getSelections');
-                if (selected.length>0) {
-                    deleteCategories(selected[0].Id);
-                }
-                 
-            });
+           
         });
     
      </script>
