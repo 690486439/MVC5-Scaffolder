@@ -18,6 +18,9 @@ using WebApp.Extensions;
 using PagedList;
 using Kendo.Mvc.UI;
 using Kendo.Mvc.Extensions;
+using Newtonsoft.Json;
+using System.Web.Script.Serialization;
+using System.IO;
 
 
 namespace WebApp.Controllers
@@ -48,21 +51,48 @@ namespace WebApp.Controllers
         #region operate for kend-ui grid
         public ActionResult Read([DataSourceRequest]DataSourceRequest request)
         {
-            DataSourceResult result = _productService.Queryable().Include(x=>x.Category).ToDataSourceResult(request, c => new
-            {
-                Id = c.Id,
-                Name = c.Name,
-                ObjectState = c.ObjectState,
-                Category = new Category(){ Id = c.Category.Id, Name = c.Category.Name},
-                CategoryId= c.CategoryId,
-                StockQty =  c.StockQty,
-                Unit = c.Unit,
-               UnitPrice= c.UnitPrice,
-               ConfirmDateTime = c.ConfirmDateTime
+            //DataSourceResult result = _productService.Queryable().Include(x=>x.Category).ToDataSourceResult(request, c => new
+            //{
+            //    Id = c.Id,
+            //    Name = c.Name,
+            //    ObjectState = c.ObjectState,
+            //    Category = new Category() { Id = c.Category.Id, Name = c.Category.Name },
+            //    CategoryName = c.Category.Name,
+            //    CategoryId= c.CategoryId,
+            //    StockQty =  c.StockQty,
+            //    Unit = c.Unit,
+            //   UnitPrice= c.UnitPrice,
+            //   ConfirmDateTime = c.ConfirmDateTime
               
-            });
-            //DataSourceResult result = students.ToDataSourceResult(request);
+            //});
+            DataSourceResult result = _productService.Queryable().ToDataSourceResult(request);
             return Json(result);
+         //   var scriptSerializer = JsonSerializer.Create(new JsonSerializerSettings 
+         //   { 
+         ////这句是解决问题的关键,也就是json.net官方给出的解决配置选项.                 
+         // ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+         //   } );
+
+            //var scriptSerializer = JsonSerializer.Create(new JsonSerializerSettings
+            //{
+            //    //这句是解决问题的关键,也就是json.net官方给出的解决配置选项.                 
+            //    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            //});
+            //string jsonstring = "";
+            //using (var sw = new StringWriter())
+            //{
+            //    scriptSerializer.Serialize(sw, _productService.Queryable().Include(x=>x.Category).ToDataSourceResult(request) );
+            //    jsonstring = sw.ToString();
+            //} 
+
+           
+            
+            //var result = new ContentResult();
+            //result.Content = jsonstring;//serializer.Serialize(data.ToDataSourceResult(request));
+            //result.ContentType = "application/json";
+            //return result;
+
+            //return Json(result);
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -79,18 +109,7 @@ namespace WebApp.Controllers
                 _unitOfWork.SaveChanges();
             }
 
-            return Json(new[] { new 
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Category = new Category(){ Id = product.Category.Id, Name = product.Category.Name},
-                CategoryId= product.CategoryId,
-                StockQty =  product.StockQty,
-                Unit = product.Unit,
-               UnitPrice= product.UnitPrice,
-               ConfirmDateTime = product.ConfirmDateTime
-              
-            }}.ToDataSourceResult(request, ModelState));
+            return Json(new[] { product }.ToDataSourceResult(request, ModelState));
         }
         [AcceptVerbs(HttpVerbs.Post)]
         public ActionResult Update([DataSourceRequest] DataSourceRequest request,Product product)
@@ -107,18 +126,7 @@ namespace WebApp.Controllers
             }
 
 
-            return Json(new[] { new 
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Category = new Category(){ Id = product.Category.Id, Name = product.Category.Name},
-                CategoryId= product.CategoryId,
-                StockQty =  product.StockQty,
-                Unit = product.Unit,
-               UnitPrice= product.UnitPrice,
-               ConfirmDateTime = product.ConfirmDateTime
-              
-            }}.ToDataSourceResult(request, ModelState));
+            return Json(new[] { product }.ToDataSourceResult(request, ModelState));
         }
 
         [AcceptVerbs(HttpVerbs.Post)]

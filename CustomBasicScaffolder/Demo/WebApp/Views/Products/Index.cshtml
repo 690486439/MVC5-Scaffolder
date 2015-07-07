@@ -9,7 +9,7 @@
 @{
     ViewBag.Title = "Product";
 }
- 
+
 
 <div class="container-fluid">
     <!-- Page Heading -->
@@ -33,71 +33,87 @@
     <!-- /.row -->
     <div class="row">
         <div class="col-lg-12">
-            @(Html.Kendo().Grid<WebApp.Models.Product>()
-                      .Name("Product")
-      .Columns(columns =>
-      {
-          columns.Command(command => { command.Edit(); command.Destroy(); });
-          columns.Bound(c => c.Name);
-          columns.Bound(c => c.Category).ClientTemplate("#=Category.Name#").Width(160).EditorTemplateName("ClientCategory");
-          columns.Bound(c => c.StockQty);
-          columns.Bound(c => c.Unit);
-          columns.Bound(c => c.UnitPrice);
-          columns.Bound(c => c.ConfirmDateTime).Format("{0:yyyy/MM/dd}").EditorTemplateName("DateTime"); ; ;
 
+          @(Html.Kendo().Grid<WebApp.Models.Product>()
+    .Name("grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.Name);
+        columns.ForeignKey(p => p.CategoryId, (System.Collections.IEnumerable)ViewData["categories"], "Id", "Name").Title("Category").Width(150).EditorTemplateName("ClientCategory");
+        columns.Bound(p => p.UnitPrice).Width(150);
+        columns.Template(@<text></text>)
+       .HtmlAttributes(new { @class = "templateCell" }).ClientTemplate(
+                Html.Kendo().Menu()
+                    .Name("menu_#=Id#")
+                    .Items(its =>
+                    {
+                        its.Add().Text("操作").Items(nested =>
+                        {
+                            nested.Add().Text("修改");
+                            nested.Add().Text("删除");
+                        });
 
-      })
-      .ToolBar(toolbar =>
-      {
-          toolbar.Create();
-          toolbar.Excel();
+                    })
+                    .ToClientTemplate().ToHtmlString()
+                );
 
-      })
-
-
-              .ColumnMenu(menu => menu.Filterable(false))
-      .Editable(editable => editable.Mode(GridEditMode.InLine))
-      .Pageable()
-      .Selectable(selectable =>
-      {
-          selectable.Mode(GridSelectionMode.Single);
-          selectable.Type(GridSelectionType.Row);
-      })
-      .Sortable(sortable =>
-      {
-          sortable.SortMode(GridSortMode.SingleColumn);
-      })
-      .Filterable(filterable => filterable.Mode(GridFilterMode.Row))
-      .Scrollable()
-      .Groupable()
-               .HtmlAttributes(new { style = "height:430px;" })
-      .DataSource(dataSource => dataSource
-          .Ajax()
-          .Model(model =>
-          {
-              model.Id(p => p.Id);
-              model.Field(p => p.Category).DefaultValue(
-              ViewData["defaultCategory"] as WebApp.Models.Category);
-          }
-
-          )
-                  .Read(read => read.Action("Read", "Products"))
-          .PageSize(20)
-          .Events(events => events.Error("error_handler"))
-                          .Create(update => update.Action("Create", "Products"))
-                          .Update(update => update.Action("Update", "Products"))
-                          .Destroy(update => update.Action("Delete", "Products"))
-
-      )
-            )
-
+        columns.Command(command =>
+        {
+            command.Custom("修改");
+            command.Custom("删除");
+        }).Width(110);
+    })
+    .ToolBar(toolBar =>
+        {
+            toolBar.Save();
+            toolBar.Create();
+        })
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .Filterable()
+    .Groupable()
+    .Pageable()
+    .Scrollable()
+    .ColumnMenu()
+    .Sortable()
+    .HtmlAttributes(new { style = "height:530px;" })
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(false)
+        .PageSize(20)
+        .ServerOperation(true)
+        .Events(events => events.Error("errorHandler"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Name).Editable(true);
+            model.Field(p => p.CategoryId).DefaultValue(1);
+        })
+                .Read(read => read.Action("Read", "Products"))
+                      .Create(update => update.Action("Create", "Products"))
+                                  .Update(update => update.Action("Update", "Products"))
+                                  .Destroy(update => update.Action("Delete", "Products"))
+    )
+            .Events(ev => ev.DataBound("initMenus"))
+        )
             <br />
 
         </div>
     </div>
 </div>
+<style>
+.k-widget .templateCell
+{
+    overflow: visible;
+}
+</style>
 @section Scripts {
     <script type="text/javascript">
+        function initMenus(e) {
+            $(".templateCell").each(function () {
+                eval($(this).children("script").last().html());
+            });
+        }
+
         //$(window).resize(function () {
         //    var gridElement = $("#Product"),
         //        newHeight = gridElement.innerHeight(),
@@ -111,7 +127,7 @@
         //    gridElement.children(".k-grid-content").height(newHeight - otherElementsHeight);
         //});
 
-        function error_handler(e) {
+        function errorHandler(e) {
             if (e.errors) {
                 var message = "Errors:\n";
                 $.each(e.errors, function (key, value) {
