@@ -38,6 +38,8 @@ namespace WebApp.Controllers
         public CategoriesController (ICategoryService  categoryService, IUnitOfWorkAsync unitOfWork)
         {
             _categoryService  = categoryService;
+
+            var product = _categoryService.GetProductsByCategoryId(1);
             _unitOfWork = unitOfWork;
         }
 
@@ -83,6 +85,7 @@ namespace WebApp.Controllers
         {
             if (category != null)
             {
+                
                 _categoryService.Delete(category);
                 _unitOfWork.SaveChanges();
             }
@@ -94,7 +97,6 @@ namespace WebApp.Controllers
 		public ActionResult ReadProductsWithCategoryId(int categoryid, [DataSourceRequest] DataSourceRequest request)
         {
             var productRepository = _unitOfWork.Repository<WebApp.Models.Product>();
-
             return Json(productRepository.Queryable()
                 .Where(n => n.CategoryId == categoryid)
                 .ToDataSourceResult(request));

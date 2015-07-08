@@ -215,6 +215,7 @@ if (!String.IsNullOrEmpty(LayoutPageFile)) {
 										foreach (PropertyMetadata chproperty in childrenmodelmeta.Properties.Where(n=>n.Scaffold && n.AssociationDirection!=AssociationDirection.ManyToOne && n.AssociationDirection != AssociationDirection.OneToMany) )
 										{
 									#>
+										<# if(chproperty.PropertyName ==  foreignkeyname) continue; #>
 										<#  if (chproperty.ShortTypeName=="DateTime" ){ #>
 											//日期类型列
 											columns.Bound(col => col.<#= chproperty.PropertyName #>).Format("{0:yyyy-MM-dd}");

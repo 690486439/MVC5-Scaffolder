@@ -1,4 +1,7 @@
-﻿@using Kendo.Mvc.UI
+﻿
+
+
+@using Kendo.Mvc.UI
 @using Kendo.Mvc.UI.Html
 @model IEnumerable<WebApp.Models.Category>
 
@@ -21,7 +24,7 @@
                 <li>
                     <i class="fa fa-home"></i>  @Html.ActionLink("Home", "Index", "Home")
                 </li>
-
+                 
                 <li class="active">
                     <i class="fa fa-file"></i> Categories
                 </li>
@@ -29,28 +32,27 @@
         </div>
     </div>
     <!-- /.row -->
-    <div class="row">
+     <div class="row">
         <div class="col-lg-12">
-
-            @(Html.Kendo().Grid<WebApp.Models.Product>()
+             
+     @(Html.Kendo().Grid<WebApp.Models.Product>()
         .Name("Categories")
         .Columns(columns =>
         {
-            columns.Command(command =>
-            {
+            columns.Command(command => {
                 command.Edit();
                 command.Destroy();
                 command.Custom("Detail").Click("showDetail");
             });
-            //主键列
-            columns.Bound(col => col.Id);
-            columns.Bound(col => col.Name);
-
+					       			   //主键列
+			   columns.Bound(col => col.Id);
+			   					       			   columns.Bound(col => col.Name);
+			   			             
         })
        .ToolBar(toolBar =>
                 {
-                    toolBar.Create();
-                    toolBar.Excel();
+                   toolBar.Create();
+                   toolBar.Excel();
                 })
         .Editable(editable => editable.Mode(GridEditMode.InLine))
         .Filterable()
@@ -60,56 +62,55 @@
         .ColumnMenu()
         .Sortable()
         .HtmlAttributes(new { style = "height:540px;" })
-                .ClientDetailTemplateId("detailtemplate")
-                .DataSource(dataSource => dataSource
+				.ClientDetailTemplateId("detailtemplate")
+		        .DataSource(dataSource => dataSource
             .Ajax()
             .Events(events => events.Error("errorHandler"))
-            .PageSize(20)
+			.PageSize(20)
             .Model(model =>
             {
-                //主键列
-                model.Id(p => p.Id);
-                model.Field(p => p.Id).Editable(false);
-                model.Field(p => p.Name);
-            })
-            .Sort(sort =>
-             {
-                 sort.Add(p => p.Id).Descending();
-             })
+															//主键列
+						model.Id(p => p.Id);
+						model.Field(p => p.Id).Editable(false);
+				   			   											model.Field(p => p.Name) ;
+				   			               })
+			.Sort(sort =>
+			 {
+				sort.Add(p => p.Id).Descending();
+			 })
             .Read(read => read.Action("GridRead", "Categories"))
             .Create(create => create.Action("GridCreate", "Categories"))
             .Update(update => update.Action("GridUpdate", "Categories"))
             .Destroy(delete => delete.Action("GridDelete", "Categories"))
         )
+                
+    )
+       
+		
 
-            )
-
-
-
-            <!--内嵌明细表-->
-            <script id="detailtemplate" type="text/kendo-tmpl">
-                @(Html.Kendo().TabStrip()
+				<!--内嵌明细表-->
+		<script id="detailtemplate" type="text/kendo-tmpl">
+            @(Html.Kendo().TabStrip()
             .Name("tabStrip_#=Id#")
             .SelectedIndex(0)
             .Animation(animation => animation.Open(open => open.SlideIn(SlideDirection.Left)))
             .Items(items =>
             {
-                //tabs
-                items.Add().Text("Products").Content(@<text>
-                    @(Html.Kendo().Grid<WebApp.Models.Product>()
+				 				 //tabs
+				 items.Add().Text("Products").Content(@<text>
+                            @(Html.Kendo().Grid<WebApp.Models.Product>()
                                .Name("Products_#=Id#")
                                .Columns(columns =>
                                {
-                                   columns.Bound(col => col.Id);
-                                   columns.Bound(col => col.Name);
-                                   columns.Bound(col => col.Unit);
-                                   columns.Bound(col => col.UnitPrice);
-                                   columns.Bound(col => col.StockQty);
-                                   //日期类型列
-                                   columns.Bound(col => col.ConfirmDateTime).Format("{0:yyyy-MM-dd}");
-                                   columns.Bound(col => col.CategoryId);
-
-                               })
+							         																															columns.Bound(col => col.Id);
+																																																		columns.Bound(col => col.Name);
+																																																		columns.Bound(col => col.Unit);
+																																																		columns.Bound(col => col.UnitPrice);
+																																																		columns.Bound(col => col.StockQty);
+																																																		//日期类型列
+											columns.Bound(col => col.ConfirmDateTime).Format("{0:yyyy-MM-dd}");
+																													                                     
+                                })
                                 .DataSource(dataSource => dataSource
                                     .Ajax()
                                     .PageSize(10)
@@ -118,27 +119,27 @@
                                 .Pageable()
                                 .Sortable()
                                 .ToClientTemplate()
-                    )
-                </text>
+                                )
+                            </text>
                     );
 
 
 
-
+				
             })
-                            .ToClientTemplate())
+            .ToClientTemplate())
             </script>
 
-            <!--内嵌明细表-->
-
+		<!--内嵌明细表--> 
+		
         </div>
     </div>
 
-
+	 
 </div>
 @section Scripts {
     <script type="text/javascript">
-        function errorHandler(e) {
+         function errorHandler(e) {
             if (e.errors) {
                 var message = "Errors:\n";
                 $.each(e.errors, function (key, value) {
@@ -151,17 +152,17 @@
                 alert(message);
             }
         }
-        function showDetail(e) {
-            e.preventDefault();
-            //console.log(e.target, this);
-            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-            var id = dataItem.Id;
-            //console.log(dataItem.Id);
-            window.location.href = "@Url.Action("Edit","Categories")" + "/" + id;
-        }
+		function showDetail(e) {
+			e.preventDefault();
+			//console.log(e.target, this);
+			var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+			var id = dataItem.Id;
+			//console.log(dataItem.Id);
+			window.location.href = "@Url.Action("Edit","Categories")" + "/" + id;
+		}
         $(document).ready(function (e) {
 
-        });
-    </script>
+		});
+     </script>
 }
 
