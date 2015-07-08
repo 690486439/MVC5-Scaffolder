@@ -1,10 +1,12 @@
 ﻿<#@ template language="C#" HostSpecific="True" #>
 <#@ output extension=".cshtml" #>
 <#@ include file="Imports.include.t4" #>
+@using Kendo.Mvc.UI
+@using Kendo.Mvc.UI.Html
 @model IEnumerable<#= "<" + ViewDataTypeName + ">" #>
-
 <#
     var modelVariable = ModelMetadata.EntitySetName.ToLower();
+	
     var primaryKeyName = GetPrimaryKeyName(); 
 #>
 
@@ -77,7 +79,7 @@ if (!String.IsNullOrEmpty(LayoutPageFile)) {
         <div class="col-lg-12">
              
      @(Html.Kendo().Grid<WebApp.Models.Product>()
-        .Name("grid")
+        .Name("<#= modelName #>")
         .Columns(columns =>
         {
             columns.Command(command => {
@@ -86,7 +88,7 @@ if (!String.IsNullOrEmpty(LayoutPageFile)) {
                 command.Custom("Detail").Click("showDetail");
             });
 			<# 
-			foreach (PropertyMetadata property in ModelMetadata.Properties.Where(n=>n.Scaffold && n.AssociationDirection!=AssociationDirection.ManyToOne) )
+			foreach (PropertyMetadata property in ModelMetadata.Properties.Where(n=>n.Scaffold && n.AssociationDirection!=AssociationDirection.ManyToOne && n.AssociationDirection != AssociationDirection.OneToMany) )
             {
 			#>
 		       <#
@@ -98,7 +100,7 @@ if (!String.IsNullOrEmpty(LayoutPageFile)) {
 			   #>
 			   //外键列
 			   columns.ForeignKey(col => col.<#= property.PropertyName  #>, (System.Collections.IEnumerable)ViewBag.<#= foreignEntityName #>, "<#= foreighModelId #>", "Name").Title("<#= foreighModeDisplayName #>"); 
-			   <#  } else if (property.ShortTypeName=="DateTime" ){ #>
+			   <#  } else if (property.ShortTypeName=="DateTime" ) { #>
 			   //日期类型列
 			   columns.Bound(col => col.<#= property.PropertyName #>).Format("{0:yyyy-MM-dd}");
 			   <#  } else if(property.IsPrimaryKey) { #>
@@ -125,13 +127,20 @@ if (!String.IsNullOrEmpty(LayoutPageFile)) {
         .ColumnMenu()
         .Sortable()
         .HtmlAttributes(new { style = "height:540px;" })
+		<#
+		if( GenerateMasterDetailRelationship && OneToManyModelMetadata.Count>0)
+        {
+		#>
+		.ClientDetailTemplateId("detailtemplate")
+		<# } #>
         .DataSource(dataSource => dataSource
             .Ajax()
             .Events(events => events.Error("errorHandler"))
+			.PageSize(20)
             .Model(model =>
             {
 				<# 
-					foreach (PropertyMetadata property in ModelMetadata.Properties.Where(n=>n.Scaffold && n.AssociationDirection!=AssociationDirection.ManyToOne) )
+					foreach (PropertyMetadata property in ModelMetadata.Properties.Where(n=>n.Scaffold && n.AssociationDirection!=AssociationDirection.ManyToOne && n.AssociationDirection != AssociationDirection.OneToMany) )
 					{
 				#>
 					<#
@@ -142,16 +151,16 @@ if (!String.IsNullOrEmpty(LayoutPageFile)) {
 					   var foreighModeDisplayName =foreignModel.DisplayPropertyName;
 			       #>
 						//外键列
-						 
+						model.Field(p => p.<#= property.PropertyName  #>); 
 				   <#  } else if (property.ShortTypeName=="DateTime" ){ #>
 						//日期类型列
-						 
+						model.Field(p => p.<#= property.PropertyName  #>) ;
 			       <#  } else if(property.IsPrimaryKey) { #>
 						//主键列
 						model.Id(p => p.<#= property.PropertyName  #>);
 						model.Field(p => p.<#= property.PropertyName  #>).Editable(false);
 				   <#  } else { #>
-						 
+						model.Field(p => p.<#= property.PropertyName  #>) ;
 				   <# } #>
 			   <# 
                 }
@@ -169,7 +178,78 @@ if (!String.IsNullOrEmpty(LayoutPageFile)) {
                 
     )
        
- 
+		
+
+		<#
+		if( GenerateMasterDetailRelationship && OneToManyModelMetadata.Count>0)
+        {
+		#>
+		<!--内嵌明细表-->
+		<script id="detailtemplate" type="text/kendo-tmpl">
+            @(Html.Kendo().TabStrip()
+            .Name("tabStrip_#=<#= primaryKeyName #>#")
+            .SelectedIndex(0)
+            .Animation(animation => animation.Open(open => open.SlideIn(SlideDirection.Left)))
+            .Items(items =>
+            {
+				 <# 
+					foreach (PropertyMetadata property in ModelMetadata.Properties) 
+					{
+						if (property.AssociationDirection == AssociationDirection.OneToMany && OneToManyModelMetadata.ContainsKey(property.PropertyName))
+						{
+							var childrenmodelmeta=OneToManyModelMetadata[property.PropertyName];
+							var detailmodelnameVar=property.PropertyName.ToLower();
+							var detailmodelname = property.PropertyName;
+							var detailmodeltypename = property.TypeName;
+							var relatedEntities = childrenmodelmeta.RelatedEntities;
+							var foreignkeyname = relatedEntities.Where(n=>n.ShortTypeName == ModelTypeName).First().ForeignKeyPropertyNames[0];
+							var readaction = "Read" + property.PropertyName + "With" + foreignkeyname;
+			    #>
+				 //tabs
+				 items.Add().Text("<#= detailmodelname #>").Content(@<text>
+                            @(Html.Kendo().Grid<<#= detailmodeltypename #>>()
+                               .Name("<#= detailmodelname #>_#=<#= primaryKeyName #>#")
+                               .Columns(columns =>
+                               {
+							         <# 
+										foreach (PropertyMetadata chproperty in childrenmodelmeta.Properties.Where(n=>n.Scaffold && n.AssociationDirection!=AssociationDirection.ManyToOne && n.AssociationDirection != AssociationDirection.OneToMany) )
+										{
+									#>
+										<#  if (chproperty.ShortTypeName=="DateTime" ){ #>
+											//日期类型列
+											columns.Bound(col => col.<#= chproperty.PropertyName #>).Format("{0:yyyy-MM-dd}");
+										<#  } else { #>
+											columns.Bound(col => col.<#= chproperty.PropertyName #>);
+										<# } #>
+									<#  } #>
+                                     
+                                })
+                                .DataSource(dataSource => dataSource
+                                    .Ajax()
+                                    .PageSize(10)
+                                    .Read(read => read.Action("<#= readaction #>", "<#= ControllerRootName #>", new { <#= foreignkeyname.ToLower() #> = "#=<#= primaryKeyName #>#" }))
+                                )
+                                .Pageable()
+                                .Sortable()
+                                .ToClientTemplate()
+                                )
+                            </text>
+                    );
+
+
+
+				<#
+						}
+				} 
+				#>
+
+            })
+            .ToClientTemplate())
+            </script>
+
+		<!--内嵌明细表--> 
+		<# } #>
+
         </div>
     </div>
 

@@ -1,6 +1,7 @@
 ﻿@using Kendo.Mvc.UI
 @using Kendo.Mvc.UI.Html
 
+
 @model IEnumerable<WebApp.Models.Product>
 
 
@@ -23,18 +24,18 @@
                 <li>
                     <i class="fa fa-home"></i>  @Html.ActionLink("Home", "Index", "Home")
                 </li>
-
+                 
                 <li class="active">
-                    <i class="fa fa-file"></i> Product
+                    <i class="fa fa-file"></i> Products
                 </li>
             </ol>
         </div>
     </div>
     <!-- /.row -->
-    <div class="row">
+     <div class="row">
         <div class="col-lg-12">
-
-    @(Html.Kendo().Grid<WebApp.Models.Product>()
+             
+     @(Html.Kendo().Grid<WebApp.Models.Product>()
         .Name("grid")
         .Columns(columns =>
         {
@@ -43,12 +44,17 @@
                 command.Destroy();
                 command.Custom("Detail").Click("showDetail");
             });
-            //外键列
-            columns.Bound(p => p.Id);
-            columns.ForeignKey(p => p.CategoryId, (System.Collections.IEnumerable)ViewBag.Categories, "Id", "Name").Title("Category").Width(150);    
-            columns.Bound(p => p.Name);
-            columns.Bound(p => p.UnitPrice).Width(150);
-            columns.Bound(p => p.ConfirmDateTime).Format("{0:MM-dd-yyyy}").Width(150);
+					       			   //主键列
+			   columns.Bound(col => col.Id);
+			   					       			   columns.Bound(col => col.Name);
+			   					       			   columns.Bound(col => col.Unit);
+			   					       			   columns.Bound(col => col.UnitPrice);
+			   					       			   columns.Bound(col => col.StockQty);
+			   					       			   //日期类型列
+			   columns.Bound(col => col.ConfirmDateTime).Format("{0:yyyy-MM-dd}");
+			   					       			   //外键列
+			   columns.ForeignKey(col => col.CategoryId, (System.Collections.IEnumerable)ViewBag.Categories, "Id", "Name") ; 
+			   			             
         })
        .ToolBar(toolBar =>
                 {
@@ -57,6 +63,7 @@
                 })
         .Editable(editable => editable.Mode(GridEditMode.InLine))
         .Filterable()
+        .Reorderable(reorder => reorder.Columns(true))
         .Groupable()
         .Pageable()
         .Scrollable()
@@ -65,13 +72,26 @@
         .HtmlAttributes(new { style = "height:540px;" })
         .DataSource(dataSource => dataSource
             .Ajax()
+            .PageSize(20)
             .Events(events => events.Error("errorHandler"))
             .Model(model =>
             {
-                model.Id(p => p.Id);
-                model.Field(p => p.Id).Editable(false);
-                //model.Field(p => p.CategoryId).DefaultValue(ViewBag.DefaultCategoryId);
-            })
+															//主键列
+						model.Id(p => p.Id);
+						model.Field(p => p.Id).Editable(false);
+				   			   											 
+				   			   											 
+				   			   											 
+				   			   											 
+				   			   											//日期类型列
+						 
+			       			   											//外键列
+						 
+				   			               })
+			.Sort(sort =>
+			 {
+				sort.Add(p => p.Id).Descending();
+			 })
             .Read(read => read.Action("GridRead", "Products"))
             .Create(create => create.Action("GridCreate", "Products"))
             .Update(update => update.Action("GridUpdate", "Products"))
@@ -79,62 +99,39 @@
         )
                 
     )
-            <br />
-
+       
+ 
         </div>
     </div>
+
+	 
 </div>
-<style>
-.k-widget .templateCell
-{
-    overflow: visible;
-}
-</style>
 @section Scripts {
     <script type="text/javascript">
-    function initMenus(e) {
-        $(".templateCell").each(function () {
-            eval($(this).children("script").last().html());
-        });
-    }
-    function showDetail(e) {
-        e.preventDefault();
-        //console.log(e.target, this);
-        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        //console.log(dataItem.Id);
-        window.location.href = "@Url.Action("Edit","Products")" + "/" + dataItem.Id;
-    }
-
-    //$(window).resize(function () {
-    //    var gridElement = $("#Product"),
-    //        newHeight = gridElement.innerHeight(),
-    //        otherElements = gridElement.children().not(".k-grid-content"),
-    //        otherElementsHeight = 0;
-
-    //    otherElements.each(function () {
-    //        otherElementsHeight += $(this).outerHeight() - 100;
-    //    });
-    //    console.log(otherElementsHeight);
-    //    gridElement.children(".k-grid-content").height(newHeight - otherElementsHeight);
-    //});
-
-    function errorHandler(e) {
-        if (e.errors) {
-            var message = "Errors:\n";
-            $.each(e.errors, function (key, value) {
-                if ('errors' in value) {
-                    $.each(value.errors, function () {
-                        message += this + "\n";
-                    });
-                }
-            });
-            alert(message);
+         function errorHandler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
         }
-    }
-    $(function () {
+		function showDetail(e) {
+			e.preventDefault();
+			//console.log(e.target, this);
+			var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+			var id = dataItem.Id;
+			//console.log(dataItem.Id);
+			window.location.href = "@Url.Action("Edit","Products")" + "/" + id;
+		}
+        $(document).ready(function (e) {
 
-    });
-
-    </script>
+		});
+     </script>
 }
 

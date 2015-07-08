@@ -1,16 +1,13 @@
-﻿
-@using Kendo.Mvc.UI
+﻿@using Kendo.Mvc.UI
 @using Kendo.Mvc.UI.Html
-
 @model IEnumerable<WebApp.Models.Category>
-
 
 
 
 @{
     ViewBag.Title = "Category";
 }
- 
+
 
 <div class="container-fluid">
     <!-- Page Heading -->
@@ -24,7 +21,7 @@
                 <li>
                     <i class="fa fa-home"></i>  @Html.ActionLink("Home", "Index", "Home")
                 </li>
-                 
+
                 <li class="active">
                     <i class="fa fa-file"></i> Categories
                 </li>
@@ -32,73 +29,116 @@
         </div>
     </div>
     <!-- /.row -->
-     <div class="row">
+    <div class="row">
         <div class="col-lg-12">
-            @(Html.Kendo().Grid<WebApp.Models.Category>()
-              .Name("Category")
-      .Columns(columns =>
-      {
-          columns.Command(command => { command.Edit(); command.Destroy(); });
-          columns.Bound(c => c.Name);
-       
-      })
-      .ToolBar(toolbar =>
-      {
-          toolbar.Create();
-          toolbar.Excel();
-         
-      })
 
+            @(Html.Kendo().Grid<WebApp.Models.Product>()
+        .Name("Categories")
+        .Columns(columns =>
+        {
+            columns.Command(command =>
+            {
+                command.Edit();
+                command.Destroy();
+                command.Custom("Detail").Click("showDetail");
+            });
+            //主键列
+            columns.Bound(col => col.Id);
+            columns.Bound(col => col.Name);
 
-              .ColumnMenu(menu => menu.Filterable(false))
-      .Editable(editable => editable.Mode(GridEditMode.InLine))
-      .Pageable()
-      .Selectable(selectable =>
-      {
-          selectable.Mode(GridSelectionMode.Single);
-          selectable.Type(GridSelectionType.Row);
-      })
-      .Sortable(sortable =>
-      {
-          sortable.SortMode(GridSortMode.SingleColumn);
-      })
-      .Filterable(filterable => filterable.Mode(GridFilterMode.Row))
-      .Scrollable()
-      .Groupable()
-      .DataSource(dataSource => dataSource
-          .Ajax()
-          .Model(model => model.Id(p => p.Id))
-          .Read(read => read.Action("Read", "Categories"))
-          .PageSize(20)
-          .Events(events => events.Error("error_handler"))
-                  .Create(update => update.Action("Create", "Categories"))
-                  .Update(update => update.Action("Update", "Categories"))
-                  .Destroy(update => update.Action("Delete", "Categories"))
+        })
+       .ToolBar(toolBar =>
+                {
+                    toolBar.Create();
+                    toolBar.Excel();
+                })
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        .Filterable()
+        .Groupable()
+        .Pageable()
+        .Scrollable()
+        .ColumnMenu()
+        .Sortable()
+        .HtmlAttributes(new { style = "height:540px;" })
+                .ClientDetailTemplateId("detailtemplate")
+                .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("errorHandler"))
+            .PageSize(20)
+            .Model(model =>
+            {
+                //主键列
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).Editable(false);
+                model.Field(p => p.Name);
+            })
+            .Sort(sort =>
+             {
+                 sort.Add(p => p.Id).Descending();
+             })
+            .Read(read => read.Action("GridRead", "Categories"))
+            .Create(create => create.Action("GridCreate", "Categories"))
+            .Update(update => update.Action("GridUpdate", "Categories"))
+            .Destroy(delete => delete.Action("GridDelete", "Categories"))
+        )
 
-      )
             )
 
-        <br />
- 
-     </div>
+
+
+            <!--内嵌明细表-->
+            <script id="detailtemplate" type="text/kendo-tmpl">
+                @(Html.Kendo().TabStrip()
+            .Name("tabStrip_#=Id#")
+            .SelectedIndex(0)
+            .Animation(animation => animation.Open(open => open.SlideIn(SlideDirection.Left)))
+            .Items(items =>
+            {
+                //tabs
+                items.Add().Text("Products").Content(@<text>
+                    @(Html.Kendo().Grid<WebApp.Models.Product>()
+                               .Name("Products_#=Id#")
+                               .Columns(columns =>
+                               {
+                                   columns.Bound(col => col.Id);
+                                   columns.Bound(col => col.Name);
+                                   columns.Bound(col => col.Unit);
+                                   columns.Bound(col => col.UnitPrice);
+                                   columns.Bound(col => col.StockQty);
+                                   //日期类型列
+                                   columns.Bound(col => col.ConfirmDateTime).Format("{0:yyyy-MM-dd}");
+                                   columns.Bound(col => col.CategoryId);
+
+                               })
+                                .DataSource(dataSource => dataSource
+                                    .Ajax()
+                                    .PageSize(10)
+                                    .Read(read => read.Action("ReadProductsWithCategoryId", "Categories", new { categoryid = "#=Id#" }))
+                                )
+                                .Pageable()
+                                .Sortable()
+                                .ToClientTemplate()
+                    )
+                </text>
+                    );
+
+
+
+
+            })
+                            .ToClientTemplate())
+            </script>
+
+            <!--内嵌明细表-->
+
+        </div>
     </div>
+
+
 </div>
 @section Scripts {
     <script type="text/javascript">
-        $(window).resize(function () {
-            var gridElement = $("#Category"),
-                newHeight = gridElement.innerHeight(),
-                otherElements = gridElement.children().not(".k-grid-content"),
-                otherElementsHeight = 0;
-
-            otherElements.each(function () {
-                otherElementsHeight += $(this).outerHeight() -100;
-            });
-            console.log(otherElementsHeight);
-            gridElement.children(".k-grid-content").height(newHeight - otherElementsHeight);
-        });
-
-        function error_handler(e) {
+        function errorHandler(e) {
             if (e.errors) {
                 var message = "Errors:\n";
                 $.each(e.errors, function (key, value) {
@@ -111,10 +151,17 @@
                 alert(message);
             }
         }
+        function showDetail(e) {
+            e.preventDefault();
+            //console.log(e.target, this);
+            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            var id = dataItem.Id;
+            //console.log(dataItem.Id);
+            window.location.href = "@Url.Action("Edit","Categories")" + "/" + id;
+        }
         $(document).ready(function (e) {
-           
+
         });
-    
-     </script>
+    </script>
 }
 

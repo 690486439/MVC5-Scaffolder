@@ -1,0 +1,155 @@
+﻿@using Kendo.Mvc.UI
+@using Kendo.Mvc.UI.Html
+
+@model IEnumerable<WebApp.Models.Category>
+
+
+
+
+@{
+    ViewBag.Title = "Category";
+}
+
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">
+                Category
+                <small>Index</small>
+            </h1>
+            <ol class="breadcrumb">
+                <li>
+                    <i class="fa fa-home"></i>  @Html.ActionLink("Home", "Index", "Home")
+                </li>
+
+                <li class="active">
+                    <i class="fa fa-file"></i> Categories
+                </li>
+            </ol>
+        </div>
+    </div>
+    <!-- /.row -->
+    <div class="row">
+        <div class="col-lg-12">
+            @(Html.Kendo().Grid<WebApp.Models.Category>()
+              .Name("Category")
+      .Columns(columns =>
+      {
+          columns.Command(command => { command.Edit(); command.Destroy(); });
+          columns.Bound(c => c.Name);
+
+      })
+      .ToolBar(toolbar =>
+      {
+          toolbar.Create();
+          toolbar.Excel();
+
+      })
+
+
+              .ColumnMenu(menu => menu.Filterable(false))
+      .Editable(editable => editable.Mode(GridEditMode.InLine))
+      .Pageable()
+      .Selectable(selectable =>
+      {
+          selectable.Mode(GridSelectionMode.Single);
+          selectable.Type(GridSelectionType.Row);
+      })
+      .Sortable(sortable =>
+      {
+          sortable.SortMode(GridSortMode.SingleColumn);
+      })
+      .Filterable(filterable => filterable.Mode(GridFilterMode.Row))
+      .ClientDetailTemplateId("detailtemplate")
+      .Scrollable()
+      .Groupable()
+      .DataSource(dataSource => dataSource
+          .Ajax()
+          .Model(model => model.Id(p => p.Id))
+          .Read(read => read.Action("Read", "Categories"))
+          .PageSize(20)
+          .Events(events => events.Error("error_handler"))
+                  .Create(update => update.Action("Create", "Categories"))
+                  .Update(update => update.Action("Update", "Categories"))
+                  .Destroy(update => update.Action("Delete", "Categories"))
+
+      )
+            )
+
+
+            <script id="detailtemplate" type="text/kendo-tmpl">
+            @(Html.Kendo().TabStrip()
+            .Name("tabStrip_#=Id#")
+            .SelectedIndex(0)
+            .Animation(animation => animation.Open(open => open.SlideIn(SlideDirection.Left)))
+            .Items(items =>
+            {
+                items.Add().Text("Products").Content(@<text>
+                            @(Html.Kendo().Grid<WebApp.Models.Product>()
+                               .Name("Product_#=Id#")
+                               .Columns(columns =>
+                               {
+                                    columns.Bound(o => o.Id).Width(110);
+                                    columns.Bound(o => o.Name).Width(110);
+                                    columns.Bound(o => o.Unit);
+                                    columns.Bound(o => o.StockQty);
+                                    columns.Bound(o => o.UnitPrice).Width(200);
+                                })
+                                .DataSource(dataSource => dataSource
+                                    .Ajax()
+                                    .PageSize(10)
+                                    .Read(read => read.Action("ReadProductWithCategoryId", "Categories", new { categoryid = "#=Id#" }))
+                                )
+                                .Pageable()
+                                .Sortable()
+                                .ToClientTemplate()
+                                )
+                            </text>
+                    );
+
+               })
+               .ToClientTemplate())
+            </script>
+
+            <br />
+
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script type="text/javascript">
+        $(window).resize(function () {
+            var gridElement = $("#Category"),
+                newHeight = gridElement.innerHeight(),
+                otherElements = gridElement.children().not(".k-grid-content"),
+                otherElementsHeight = 0;
+
+            otherElements.each(function () {
+                otherElementsHeight += $(this).outerHeight() - 100;
+            });
+            console.log(otherElementsHeight);
+            gridElement.children(".k-grid-content").height(newHeight - otherElementsHeight);
+        });
+
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
+        }
+        $(document).ready(function (e) {
+
+        });
+
+    </script>
+}
+

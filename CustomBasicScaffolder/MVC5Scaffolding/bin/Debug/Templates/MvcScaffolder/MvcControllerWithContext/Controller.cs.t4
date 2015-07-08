@@ -113,12 +113,37 @@ namespace <#= Namespace #>
 
 		private void PopulateForeignKey()
 		{
-			<# foreach (var property in relatedProperties.Values) { #>
+			<# foreach (var property in relatedProperties.Values) {
+				var foreignkey = property.ForeignKeyPropertyNames[0];
+			#>
             var <#= property.ShortTypeName.ToLower() #>Repository = _unitOfWork.Repository<<#= property.ShortTypeName #>>();
 			ViewBag.<#= property.EntitySetName  #> = <#= property.ShortTypeName.ToLower() #>Repository.Queryable();
-            ViewBag.Default<#= property.ShortTypeName #>Id = <#= property.ShortTypeName.ToLower() #>Repository.Queryable().First().<#= property.PrimaryKeyNames[0] #>;     
+            ViewBag.Default<#= foreignkey #> = <#= property.ShortTypeName.ToLower() #>Repository.Queryable().First().<#= property.PrimaryKeyNames[0] #>;     
              
 			<# } #>
+		    
+
+			<#
+			if( GenerateMasterDetailRelationship && OneToManyModelMetadata.Count>0)
+			{
+				foreach(var childrenModelMeta  in OneToManyModelMetadata.Values)
+				{
+					var chrelatedProperties = childrenModelMeta.RelatedEntities.ToDictionary(item => item.AssociationPropertyName);
+					foreach (var chproperty in chrelatedProperties.Values.Where(n=>!relatedProperties.Values.Where(m => m.ShortTypeName == n.ShortTypeName).Any()))
+                    {
+						var chforeignkey = chproperty.ForeignKeyPropertyNames[0];
+			#>
+
+			var <#= chproperty.ShortTypeName.ToLower() #>Repository = _unitOfWork.Repository<<#= chproperty.ShortTypeName #>>();
+			ViewBag.<#= chproperty.EntitySetName  #> = <#= chproperty.ShortTypeName.ToLower() #>Repository.Queryable();
+            ViewBag.Default<#= chforeignkey #> = <#= chproperty.ShortTypeName.ToLower() #>Repository.Queryable().First().<#= chproperty.PrimaryKeyNames[0] #>;    
+
+			<#
+                    }
+                } 
+            }
+			#>
+
 		}
 
 		public ActionResult GridRead([DataSourceRequest]DataSourceRequest request)
@@ -164,6 +189,38 @@ namespace <#= Namespace #>
             return Json(new[] { <#= ModelVariable #> }.ToDataSourceResult(request, ModelState));
         }
 
+		<#
+		if( GenerateMasterDetailRelationship && OneToManyModelMetadata.Count>0)
+        {
+			foreach (PropertyMetadata property in ModelMetadata.Properties) 
+					{
+						if (property.AssociationDirection == AssociationDirection.OneToMany && OneToManyModelMetadata.ContainsKey(property.PropertyName))
+						{
+							var childrenmodelmeta=OneToManyModelMetadata[property.PropertyName];
+							var detailmodelnameVar=property.PropertyName.ToLower();
+							var detailmodelname = property.PropertyName;
+							var detailmodeltypename = property.TypeName;
+							var detailmodelshottypename =property.ShortTypeName;
+				 
+							var relatedEntities = childrenmodelmeta.RelatedEntities;
+							var foreignkeyname = relatedEntities.Where(n=>n.ShortTypeName == ModelTypeName).First().ForeignKeyPropertyNames[0];
+							var readaction = "Read" + property.PropertyName + "With" + foreignkeyname;
+		#>
+
+		public ActionResult <#= readaction #>(int <#= foreignkeyname.ToLower() #>, [DataSourceRequest] DataSourceRequest request)
+        {
+            var <#= detailmodelshottypename.ToLower() #>Repository = _unitOfWork.Repository<<#= detailmodeltypename #>>();
+
+            return Json(productRepository.Queryable()
+                .Where(n => n.<#= foreignkeyname #> == <#= foreignkeyname.ToLower() #>)
+                .ToDataSourceResult(request));
+        }
+
+
+		<#             }
+		         }
+			}	  
+	    #>
         [HttpPost]
         public ActionResult Excel_Export_Save(string contentType, string base64, string fileName)
         {
@@ -171,7 +228,7 @@ namespace <#= Namespace #>
 
             return File(fileContents, contentType, fileName);
         }
-		public
+	 
 		
 
 

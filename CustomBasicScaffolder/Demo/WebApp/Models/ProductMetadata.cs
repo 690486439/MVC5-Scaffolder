@@ -41,7 +41,7 @@ namespace WebApp.Models
         public DateTime ConfirmDateTime { get; set; }
 
         [Required(ErrorMessage = "Please enter : CategoryId")]
-        [Display(Name = "CategoryId")]
+        [Display(Name = "分类")]
         public int CategoryId { get; set; }
 
     }

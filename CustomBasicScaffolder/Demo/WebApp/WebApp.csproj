@@ -210,6 +210,7 @@
     <Compile Include="Controllers\BaseCodesController.cs" />
     <Compile Include="Controllers\ButtonAttribute.cs" />
     <Compile Include="Controllers\CategoriesController.cs" />
+    <Compile Include="Controllers\CategoriesController1.cs" />
     <Compile Include="Controllers\CompaniesController.cs" />
     <Compile Include="Controllers\DepartmentsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -295,11 +296,11 @@
     </Compile>
     <Compile Include="Services\BaseCodes\BaseCodeService.cs" />
     <Compile Include="Services\BaseCodes\IBaseCodeService.cs" />
-    <Compile Include="Services\CategoryService.cs" />
+    <Compile Include="Services\Categories\CategoryService.cs" />
+    <Compile Include="Services\Categories\ICategoryService.cs" />
     <Compile Include="Services\Companies\CompanyService.cs" />
     <Compile Include="Services\Companies\ICompanyService.cs" />
     <Compile Include="Services\DepartmentService.cs" />
-    <Compile Include="Services\ICategoryService.cs" />
     <Compile Include="Services\IDepartmentService.cs" />
     <Compile Include="Services\IOrderService.cs" />
     <Compile Include="Services\OrderService.cs" />
@@ -1505,8 +1506,8 @@
     <Content Include="Views\Categories\Create.cshtml" />
     <Content Include="Views\Categories\Edit.cshtml" />
     <Content Include="Views\Categories\EditForm.cshtml" />
-    <Content Include="Views\Products\Index.cshtml" />
-    <Content Include="Views\Categories\Index.cshtml" />
+    <Content Include="Views\Products\Index1.cshtml" />
+    <Content Include="Views\Categories\Index1.cshtml" />
     <Content Include="Views\Shared\_LoginLayout.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\String1.cshtml" />
     <Content Include="Views\AccountManage\Index.cshtml" />
@@ -1676,6 +1677,10 @@
     <Content Include="Views\Shared\EditorTemplates\Url.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\Float.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\Decimal.cshtml" />
+    <Content Include="Views\Products\Index.cshtml" />
+    <Content Include="Views\Categories\_PopupSearch.cshtml" />
+    <Content Include="Views\Categories\_ProductEditForm.cshtml" />
+    <Content Include="Views\Categories\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
