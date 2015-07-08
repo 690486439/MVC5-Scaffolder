@@ -188,6 +188,7 @@ namespace <#= Namespace #>
         public ActionResult <#= ViewPrefix #>Index()
 <# } #>
         {
+			 PopulateForeignKey();
             
 <#  var includeExpressions = "";
         includeExpressions = String.Join("", relatedProperties.Values.Select(property => String.Format(".Include({0} => {0}.{1})", lambdaVar, property.AssociationPropertyName)));

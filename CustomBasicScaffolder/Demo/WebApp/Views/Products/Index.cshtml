@@ -41,8 +41,10 @@
             columns.Command(command => {
                 command.Edit();
                 command.Destroy();
-                command.Custom("编辑").Click("toEdit");
+                command.Custom("Detail").Click("showDetail");
             });
+            //外键列
+            columns.Bound(p => p.Id);
             columns.ForeignKey(p => p.CategoryId, (System.Collections.IEnumerable)ViewBag.Categories, "Id", "Name").Title("Category").Width(150);    
             columns.Bound(p => p.Name);
             columns.Bound(p => p.UnitPrice).Width(150);
@@ -51,29 +53,31 @@
        .ToolBar(toolBar =>
                 {
                    toolBar.Create();
+                   toolBar.Excel();
                 })
-             .Editable(editable => editable.Mode(GridEditMode.InLine))
-            .Filterable()
-            .Groupable()
-            .Pageable()
-            .Scrollable()
-            .ColumnMenu()
-            .Sortable()
-            .HtmlAttributes(new { style = "height:530px;" })
-            .DataSource(dataSource => dataSource
-                .Ajax()
-                .Events(events => events.Error("errorHandler"))
-                .Model(model =>
-                {
-                    model.Id(p => p.Id);
-                    //model.Field(p => p.CategoryId).DefaultValue(ViewBag.DefaultCategoryId);
-                })
-                .Read(read => read.Action("GridRead", "Products"))
-                .Create(create => create.Action("GridCreate", "Products"))
-                .Update(update => update.Action("GridUpdate", "Products"))
-                .Destroy(delete => delete.Action("GridDelete", "Products"))
-            )
-                    
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        .Filterable()
+        .Groupable()
+        .Pageable()
+        .Scrollable()
+        .ColumnMenu()
+        .Sortable()
+        .HtmlAttributes(new { style = "height:540px;" })
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("errorHandler"))
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+                model.Field(p => p.Id).Editable(false);
+                //model.Field(p => p.CategoryId).DefaultValue(ViewBag.DefaultCategoryId);
+            })
+            .Read(read => read.Action("GridRead", "Products"))
+            .Create(create => create.Action("GridCreate", "Products"))
+            .Update(update => update.Action("GridUpdate", "Products"))
+            .Destroy(delete => delete.Action("GridDelete", "Products"))
+        )
+                
     )
             <br />
 
@@ -93,11 +97,11 @@
             eval($(this).children("script").last().html());
         });
     }
-    function toEdit(e) {
+    function showDetail(e) {
         e.preventDefault();
-        console.log(e.target, this);
+        //console.log(e.target, this);
         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
-        console.log(dataItem.Id);
+        //console.log(dataItem.Id);
         window.location.href = "@Url.Action("Edit","Products")" + "/" + dataItem.Id;
     }
 

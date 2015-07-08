@@ -107,7 +107,15 @@ if (ReferenceScriptLibraries) {
 {
     @Html.AntiForgeryToken()
     
-    <div class="form-horizontal">
+    <#
+	    string divclass="";
+		if(FromLayoutCols>3){
+			divclass="";
+        }else{
+			divclass = "form-horizontal";
+        }
+	#>
+    <div class="<#= divclass #>">
         <h4><#= ProgramTitle #></h4>
         <hr />
 <# 
@@ -154,6 +162,8 @@ if(IsLayoutPageSelected && ReferenceScriptLibraries && IsBundleConfigPresent) {
             $(document).ready(function () {
 
                 $('form').submit(function () {
+					if (!$('form').valid())
+						return false;
                     var token = $('[name=__RequestVerificationToken]').val();
                     var serializedForm = $(this).serialize();
                     var actionurl = $(this).attr('action');
@@ -165,15 +175,16 @@ if(IsLayoutPageSelected && ReferenceScriptLibraries && IsBundleConfigPresent) {
                      <# } #>
                     
                      var newitem = {
-                        <# foreach(var property  in  ModelMetadata.Properties) {
-                            if(property.IsPrimaryKey) {
-                        #>                  
-                                <#= property.PropertyName #>: <#= primaryKeyVar #>,
+                        <# foreach(var property  in  ModelMetadata.Properties.Where(n=>true ).OrderByDescending(n=>n.Scaffold).ThenBy(n=>n.IsForeignKey).ThenBy(n=>n.PropertyName)) {
+                            if(property.IsPrimaryKey) { #>
+								//primaryKey
+								<#= property.PropertyName #>: <#= primaryKeyVar #>,
                         <# } else if (property.AssociationDirection == AssociationDirection.OneToMany) { #>
+								//detailTables
                                 <#= property.PropertyName #>: <#= property.PropertyName.ToLower() #> ,
                         <# } else if(property.IsForeignKey)  { #>
-								<#= property.PropertyName #>: $('#<#= property.PropertyName.ToLower() #> :selected').val();
-						<# } else { #>
+								<#= property.PropertyName #>: $('#<#= property.PropertyName #> :selected','form').val(),
+						<# } else if (property.AssociationDirection != AssociationDirection.ManyToOne) { #>
                                 <#= property.PropertyName #>: $('#<#= property.PropertyName #>', 'form').val(),
                         <#
                              }

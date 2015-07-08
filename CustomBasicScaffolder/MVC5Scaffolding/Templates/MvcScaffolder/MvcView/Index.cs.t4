@@ -76,7 +76,98 @@ if (!String.IsNullOrEmpty(LayoutPageFile)) {
      <div class="row">
         <div class="col-lg-12">
              
- 
+     @(Html.Kendo().Grid<WebApp.Models.Product>()
+        .Name("grid")
+        .Columns(columns =>
+        {
+            columns.Command(command => {
+                command.Edit();
+                command.Destroy();
+                command.Custom("Detail").Click("showDetail");
+            });
+			<# 
+			foreach (PropertyMetadata property in ModelMetadata.Properties.Where(n=>n.Scaffold && n.AssociationDirection!=AssociationDirection.ManyToOne) )
+            {
+			#>
+		       <#
+                   if(property.IsForeignKey) {
+					   var foreignModel = ModelMetadata.RelatedEntities.Where(x=>x.ForeignKeyPropertyNames[0]== property.PropertyName).First();
+					   var foreignEntityName = foreignModel.EntitySetName;
+					   var foreighModelId = foreignModel.PrimaryKeyNames[0];
+					   var foreighModeDisplayName =foreignModel.DisplayPropertyName;
+			   #>
+			   //外键列
+			   columns.ForeignKey(col => col.<#= property.PropertyName  #>, (System.Collections.IEnumerable)ViewBag.<#= foreignEntityName #>, "<#= foreighModelId #>", "Name").Title("<#= foreighModeDisplayName #>"); 
+			   <#  } else if (property.ShortTypeName=="DateTime" ){ #>
+			   //日期类型列
+			   columns.Bound(col => col.<#= property.PropertyName #>).Format("{0:yyyy-MM-dd}");
+			   <#  } else if(property.IsPrimaryKey) { #>
+			   //主键列
+			   columns.Bound(col => col.<#= property.PropertyName #>);
+			   <#  } else { #>
+			   columns.Bound(col => col.<#= property.PropertyName #>);
+			   <# } #>
+			<# 
+            }
+			#>
+             
+        })
+       .ToolBar(toolBar =>
+                {
+                   toolBar.Create();
+                   toolBar.Excel();
+                })
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        .Filterable()
+        .Groupable()
+        .Pageable()
+        .Scrollable()
+        .ColumnMenu()
+        .Sortable()
+        .HtmlAttributes(new { style = "height:540px;" })
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Events(events => events.Error("errorHandler"))
+            .Model(model =>
+            {
+				<# 
+					foreach (PropertyMetadata property in ModelMetadata.Properties.Where(n=>n.Scaffold && n.AssociationDirection!=AssociationDirection.ManyToOne) )
+					{
+				#>
+					<#
+					   if(property.IsForeignKey) {
+					   var foreignModel = ModelMetadata.RelatedEntities.Where(x=>x.ForeignKeyPropertyNames[0]== property.PropertyName).First();
+					   var foreignEntityName = foreignModel.EntitySetName;
+					   var foreighModelId = foreignModel.PrimaryKeyNames[0];
+					   var foreighModeDisplayName =foreignModel.DisplayPropertyName;
+			       #>
+						//外键列
+						 
+				   <#  } else if (property.ShortTypeName=="DateTime" ){ #>
+						//日期类型列
+						 
+			       <#  } else if(property.IsPrimaryKey) { #>
+						//主键列
+						model.Id(p => p.<#= property.PropertyName  #>);
+						model.Field(p => p.<#= property.PropertyName  #>).Editable(false);
+				   <#  } else { #>
+						 
+				   <# } #>
+			   <# 
+                }
+			   #>
+            })
+			.Sort(sort =>
+			 {
+				sort.Add(p => p.<#= primaryKeyName  #>).Descending();
+			 })
+            .Read(read => read.Action("GridRead", "<#= ControllerRootName #>"))
+            .Create(create => create.Action("GridCreate", "<#= ControllerRootName #>"))
+            .Update(update => update.Action("GridUpdate", "<#= ControllerRootName #>"))
+            .Destroy(delete => delete.Action("GridDelete", "<#= ControllerRootName #>"))
+        )
+                
+    )
        
  
         </div>
@@ -99,6 +190,14 @@ if (!String.IsNullOrEmpty(LayoutPageFile)) {
                 alert(message);
             }
         }
+		function showDetail(e) {
+			e.preventDefault();
+			//console.log(e.target, this);
+			var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+			var id = dataItem.<#= primaryKeyName #>;
+			//console.log(dataItem.Id);
+			window.location.href = "@Url.Action("Edit","<#= ControllerRootName #>")" + "/" + id;
+		}
         $(document).ready(function (e) {
 
 		});
