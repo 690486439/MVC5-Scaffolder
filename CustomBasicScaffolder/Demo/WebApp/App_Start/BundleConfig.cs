@@ -51,13 +51,19 @@ namespace WebApp
                         ));
 
 
+            //bundles.Add(new StyleBundle("~/Content/kendo/css").Include(
+            //          "~/Content/kendo/2015.2.624/kendo.common-material.min.css",
+                  
+            //          "~/Content/kendo/2015.2.624/kendo.material.min.css"
+                      
+            //          ));
             bundles.Add(new StyleBundle("~/Content/kendo/css").Include(
-                      "~/Content/kendo/2015.2.624/kendo.common-material.min.css",
-                       "~/Content/kendo/2015.2.624/kendo.mobile.all.min.css",
-                      "~/Content/kendo/2015.2.624/kendo.dataviz.min.css",
-                      "~/Content/kendo/2015.2.624/kendo.material.min.css",
-                      "~/Content/kendo/2015.2.624/kendo.dataviz.material.min.css"
-                      ));
+                     "~/Content/kendo/2015.2.624/kendo.common-material.min.css",
+                      "~/Content/kendo/2015.2.624/kendo.mobile.all.min.css",
+                     "~/Content/kendo/2015.2.624/kendo.dataviz.min.css",
+                     "~/Content/kendo/2015.2.624/kendo.material.min.css",
+                     "~/Content/kendo/2015.2.624/kendo.dataviz.material.min.css"
+                     ));
 
             // Set EnableOptimizations to false for debugging. For more information,
             // visit http://go.microsoft.com/fwlink/?LinkId=301862

@@ -1,17 +1,4 @@
-﻿@model DateTime?
-<div class="input-group">
-    @Html.TextBox("", Model, null, new { @class = "form-control" })<span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
-</div>
- 
+@using Kendo.Mvc.UI
+@model DateTime?
 
-<script>
-    $(document).ready(function (e) {
-        $('#@Html.IdFor(m => m)').datepicker({
-            format: "yyyy/mm/dd",
-            language: "zh-CN",
-            calendarWeeks: true,
-            autoclose: true,
-            todayHighlight: true
-        });
-    })
- </script>
+@(Html.Kendo().DatePickerFor(m => m))

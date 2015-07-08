@@ -8,5 +8,5 @@
 @(Html.Kendo().DropDownListFor(m => m)
         .DataValueField("Id")
         .DataTextField("Name")
-        .BindTo((System.Collections.IEnumerable)ViewData["categories"])
+            .BindTo((System.Collections.IEnumerable)ViewBag.Categories)
 )

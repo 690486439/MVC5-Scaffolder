@@ -34,67 +34,47 @@
     <div class="row">
         <div class="col-lg-12">
 
-          @(Html.Kendo().Grid<WebApp.Models.Product>()
-    .Name("grid")
-    .Columns(columns =>
-    {
-        columns.Bound(p => p.Name);
-        columns.ForeignKey(p => p.CategoryId, (System.Collections.IEnumerable)ViewData["categories"], "Id", "Name").Title("Category").Width(150).EditorTemplateName("ClientCategory");
-        columns.Bound(p => p.UnitPrice).Width(150);
-        columns.Template(@<text></text>)
-       .HtmlAttributes(new { @class = "templateCell" }).ClientTemplate(
-                Html.Kendo().Menu()
-                    .Name("menu_#=Id#")
-                    .Items(its =>
-                    {
-                        its.Add().Text("操作").Items(nested =>
-                        {
-                            nested.Add().Text("修改");
-                            nested.Add().Text("删除");
-                        });
-
-                    })
-                    .ToClientTemplate().ToHtmlString()
-                );
-
-        columns.Command(command =>
+    @(Html.Kendo().Grid<WebApp.Models.Product>()
+        .Name("grid")
+        .Columns(columns =>
         {
-            command.Custom("修改");
-            command.Custom("删除");
-        }).Width(110);
-    })
-    .ToolBar(toolBar =>
-        {
-            toolBar.Save();
-            toolBar.Create();
+            columns.Command(command => {
+                command.Edit();
+                command.Destroy();
+                command.Custom("编辑").Click("toEdit");
+            });
+            columns.ForeignKey(p => p.CategoryId, (System.Collections.IEnumerable)ViewBag.Categories, "Id", "Name").Title("Category").Width(150);    
+            columns.Bound(p => p.Name);
+            columns.Bound(p => p.UnitPrice).Width(150);
+            columns.Bound(p => p.ConfirmDateTime).Format("{0:MM-dd-yyyy}").Width(150);
         })
-    .Editable(editable => editable.Mode(GridEditMode.InCell))
-    .Filterable()
-    .Groupable()
-    .Pageable()
-    .Scrollable()
-    .ColumnMenu()
-    .Sortable()
-    .HtmlAttributes(new { style = "height:530px;" })
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .Batch(false)
-        .PageSize(20)
-        .ServerOperation(true)
-        .Events(events => events.Error("errorHandler"))
-        .Model(model =>
-        {
-            model.Id(p => p.Id);
-            model.Field(p => p.Name).Editable(true);
-            model.Field(p => p.CategoryId).DefaultValue(1);
-        })
-                .Read(read => read.Action("Read", "Products"))
-                      .Create(update => update.Action("Create", "Products"))
-                                  .Update(update => update.Action("Update", "Products"))
-                                  .Destroy(update => update.Action("Delete", "Products"))
+       .ToolBar(toolBar =>
+                {
+                   toolBar.Create();
+                })
+             .Editable(editable => editable.Mode(GridEditMode.InLine))
+            .Filterable()
+            .Groupable()
+            .Pageable()
+            .Scrollable()
+            .ColumnMenu()
+            .Sortable()
+            .HtmlAttributes(new { style = "height:530px;" })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Events(events => events.Error("errorHandler"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                    //model.Field(p => p.CategoryId).DefaultValue(ViewBag.DefaultCategoryId);
+                })
+                .Read(read => read.Action("GridRead", "Products"))
+                .Create(create => create.Action("GridCreate", "Products"))
+                .Update(update => update.Action("GridUpdate", "Products"))
+                .Destroy(delete => delete.Action("GridDelete", "Products"))
+            )
+                    
     )
-            .Events(ev => ev.DataBound("initMenus"))
-        )
             <br />
 
         </div>
@@ -108,41 +88,48 @@
 </style>
 @section Scripts {
     <script type="text/javascript">
-        function initMenus(e) {
-            $(".templateCell").each(function () {
-                eval($(this).children("script").last().html());
-            });
-        }
-
-        //$(window).resize(function () {
-        //    var gridElement = $("#Product"),
-        //        newHeight = gridElement.innerHeight(),
-        //        otherElements = gridElement.children().not(".k-grid-content"),
-        //        otherElementsHeight = 0;
-
-        //    otherElements.each(function () {
-        //        otherElementsHeight += $(this).outerHeight() - 100;
-        //    });
-        //    console.log(otherElementsHeight);
-        //    gridElement.children(".k-grid-content").height(newHeight - otherElementsHeight);
-        //});
-
-        function errorHandler(e) {
-            if (e.errors) {
-                var message = "Errors:\n";
-                $.each(e.errors, function (key, value) {
-                    if ('errors' in value) {
-                        $.each(value.errors, function () {
-                            message += this + "\n";
-                        });
-                    }
-                });
-                alert(message);
-            }
-        }
-        $(document).ready(function (e) {
-
+    function initMenus(e) {
+        $(".templateCell").each(function () {
+            eval($(this).children("script").last().html());
         });
+    }
+    function toEdit(e) {
+        e.preventDefault();
+        console.log(e.target, this);
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log(dataItem.Id);
+        window.location.href = "@Url.Action("Edit","Products")" + "/" + dataItem.Id;
+    }
+
+    //$(window).resize(function () {
+    //    var gridElement = $("#Product"),
+    //        newHeight = gridElement.innerHeight(),
+    //        otherElements = gridElement.children().not(".k-grid-content"),
+    //        otherElementsHeight = 0;
+
+    //    otherElements.each(function () {
+    //        otherElementsHeight += $(this).outerHeight() - 100;
+    //    });
+    //    console.log(otherElementsHeight);
+    //    gridElement.children(".k-grid-content").height(newHeight - otherElementsHeight);
+    //});
+
+    function errorHandler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+    $(function () {
+
+    });
 
     </script>
 }

@@ -30,5 +30,6 @@ namespace WebApp.Models
 
         public System.Data.Entity.DbSet<WebApp.Models.BaseCode> BaseCodes { get; set; }
         public System.Data.Entity.DbSet<WebApp.Models.CodeItem> CodeItems { get; set; }
+ 
     }
 }

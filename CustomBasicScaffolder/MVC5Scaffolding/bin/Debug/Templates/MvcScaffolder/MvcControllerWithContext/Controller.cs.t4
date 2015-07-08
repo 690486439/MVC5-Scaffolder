@@ -54,6 +54,11 @@ using System.Web;
 using System.Web.Mvc;
 using Repository.Pattern.UnitOfWork;
 using Repository.Pattern.Infrastructure;
+
+using Kendo.Mvc.UI;
+using Kendo.Mvc.Extensions;
+using Newtonsoft.Json;
+
 <# foreach (var namespaceName in RequiredNamespaces) { #>
 using <#= namespaceName #>;
 <# } #>
@@ -103,6 +108,78 @@ namespace <#= Namespace #>
             <#= modelServiceVar #>  = <#= ModelVariable  #>Service;
             _unitOfWork = unitOfWork;
         }
+
+		#region action with kendo-ui gird
+
+		private void PopulateForeignKey()
+		{
+			<# foreach (var property in relatedProperties.Values) { #>
+            var <#= property.ShortTypeName.ToLower() #>Repository = _unitOfWork.Repository<<#= property.ShortTypeName #>>();
+			ViewBag.<#= property.EntitySetName  #> = <#= property.ShortTypeName.ToLower() #>Repository.Queryable();
+            ViewBag.Default<#= property.ShortTypeName #>Id = <#= property.ShortTypeName.ToLower() #>Repository.Queryable().First().<#= property.PrimaryKeyNames[0] #>;     
+             
+			<# } #>
+		}
+
+		public ActionResult GridRead([DataSourceRequest]DataSourceRequest request)
+        {
+            
+            DataSourceResult result = <#= modelServiceVar #>.Queryable().ToDataSourceResult(request);
+            return Json(result);
+        }
+
+		[AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult GridCreate([DataSourceRequest] DataSourceRequest request, <#= ModelTypeName #> <#= ModelVariable #>)
+        {
+            if (<#= ModelVariable #> != null && ModelState.IsValid)
+            {
+                <#= modelServiceVar #>.Insert(<#= ModelVariable #>);
+                _unitOfWork.SaveChanges();
+            }
+
+            return Json(new[] { <#= ModelVariable #> }.ToDataSourceResult(request, ModelState));
+        }
+		[AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult GridUpdate([DataSourceRequest] DataSourceRequest request,<#= ModelTypeName #> <#= ModelVariable #>)
+        {
+            if (<#= ModelVariable #> != null && ModelState.IsValid)
+            {
+                <#= modelServiceVar #>.Update(<#= ModelVariable #>);
+                _unitOfWork.SaveChanges();
+            }
+
+
+            return Json(new[] { <#= ModelVariable #> }.ToDataSourceResult(request, ModelState));
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ActionResult GridDelete([DataSourceRequest] DataSourceRequest request,<#= ModelTypeName #> <#= ModelVariable #>)
+        {
+            if (<#= ModelVariable #> != null)
+            {
+                <#= modelServiceVar #>.Delete(<#= ModelVariable #>);
+                _unitOfWork.SaveChanges();
+            }
+
+            return Json(new[] { <#= ModelVariable #> }.ToDataSourceResult(request, ModelState));
+        }
+
+        [HttpPost]
+        public ActionResult Excel_Export_Save(string contentType, string base64, string fileName)
+        {
+            var fileContents = Convert.FromBase64String(base64);
+
+            return File(fileContents, contentType, fileName);
+        }
+		public
+		
+
+
+
+		#endregion
+
+
+
 
         // GET: <#= routePrefix #>/<#= ViewPrefix #>Index
 <# if (UseAsync) { #>

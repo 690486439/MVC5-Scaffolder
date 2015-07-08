@@ -39,8 +39,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Kendo.Mvc">
-      <HintPath>C:\Program Files (x86)\Telerik\UI for ASP.NET MVC Q2 2015\wrappers\aspnetmvc\Binaries\Mvc5\Kendo.Mvc.dll</HintPath>
+    <Reference Include="Kendo.Mvc, Version=2015.2.624.545, Culture=neutral, PublicKeyToken=121fae78165ba3d4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Telerik\UI for ASP.NET MVC Q2 2015\wrappers\aspnetmvc\Examples\VS2013\Kendo.Mvc.Examples\bin\Kendo.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -219,6 +220,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Controllers\ProductsController.cs" />
+    <Compile Include="Controllers\ProductsController1.cs" />
     <Compile Include="Controllers\WorksController.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -300,9 +302,9 @@
     <Compile Include="Services\ICategoryService.cs" />
     <Compile Include="Services\IDepartmentService.cs" />
     <Compile Include="Services\IOrderService.cs" />
-    <Compile Include="Services\IProductService.cs" />
     <Compile Include="Services\OrderService.cs" />
-    <Compile Include="Services\ProductService.cs" />
+    <Compile Include="Services\Products\IProductService.cs" />
+    <Compile Include="Services\Products\ProductService.cs" />
     <Compile Include="Services\Works\IWorkService.cs" />
     <Compile Include="Services\Works\WorkService.cs" />
     <Compile Include="Startup.cs" />
@@ -1455,7 +1457,9 @@
     <Content Include="Views\Works\EditForm.cshtml">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
@@ -1658,6 +1662,18 @@
     <Content Include="Scripts\kendo\2015.2.624\kendo.window.min.js.map" />
     <Content Include="Views\Categories\EditorTemplates\ClientCategory.cshtml" />
     <Content Include="Views\Products\EditorTemplates\ClientCategory.cshtml" />
+    <Content Include="Views\Products\_PopupSearch.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Currency.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\DateTime.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Email.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\EmailAddress.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\GridForeignKey.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Integer.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Number.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Password.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\String.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Time.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Url.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
